@@ -29,3 +29,11 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return self.title
+
+class Review(models.Model):
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name="reviews")
+    text = models.TextField()
+    rating = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.restaurant.title} - {self.rating}"
