@@ -1,36 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ restaurant.title }}{% endblock %}
+
+{% block content %}
 <h1>{{ restaurant.title }}</h1>
-
 <p>{{ restaurant.description }}</p>
+<p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
 
-<!-- ⭐ ORTALAMA PUAN EKLEDİK -->
-<p>⭐ Ortalama: {{ avg_rating|default:"Henüz puan yok" }}</p>
-
-<h2>Yorum Yap</h2>
-
+<h2>Write a Review</h2>
 <form action="{% url 'restaurants:add_review' restaurant.id %}" method="post">
     {% csrf_token %}
-
     {% if error_message %}
         <p><strong>{{ error_message }}</strong></p>
     {% endif %}
-
-    <textarea name="text" placeholder="Yorum yaz"></textarea><br>
-
-    <label>Puan:</label>
-    <input type="number" name="rating" min="1" max="5"><br>
-
-    <input type="submit" value="Gönder">
+    <textarea name="text" placeholder="Write your review" required></textarea><br>
+    <label>Rating:</label>
+    <input type="number" name="rating" min="1" max="5" required><br>
+    <input type="submit" value="Submit">
 </form>
 
 <hr>
-
-<!-- 💬 YORUMLARI EKLEDİK -->
-<h2>Yorumlar</h2>
-
+<h2>Reviews</h2>
 <ul>
-{% for review in restaurant.reviews.all %}
-    <li>{{ review.text }} - ⭐ {{ review.rating }}</li>
+{% for review in reviews %}
+    <li>{{ review.text }} - {{ review.rating }}</li>
 {% empty %}
-    <li>Henüz yorum yok</li>
+    <li>No reviews yet</li>
 {% endfor %}
 </ul>
+{% endblock %}

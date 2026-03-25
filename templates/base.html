@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}FlavorMap{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            background: #4c0505;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 220px;
+            background: rgba(100, 5, 5, 0.44);
+            padding: 20px;
+            color: #4c0505;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #ffffff;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            background: #f4f6f8;
+        }
+
+        .footer {
+            background: #4c0505;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <header class="header">
+        <h1>FlavorMap</h1>
+        {% block header %}{% endblock %}
+    </header>
+
+    <div class="container">
+
+        <nav class="sidebar">
+        <h3></h3>
+            <a href="{% url 'restaurants:index' %}">Home</a>
+        <h3></h3>
+            <a href="{% url 'restaurants:list' %}">All Restaurants</a>
+        <h3></h3>
+            <a href="{% url 'restaurants:about' %}">About</a>
+        <h3></h3>
+            <a href="{% url 'restaurants:contact' %}">Contact</a>
+
+            {% block sidebar %}{% endblock %}
+        </nav>
+
+        <main class="content">
+            {% block content %}
+            <h2>Welcome to FlavorMap</h2>
+            <p>Explore and review restaurants easily.</p>
+            {% endblock %}
+        </main>
+
+    </div>
+
+    <footer class="footer">
+        <p>FlavorMap by MegaBite</p>
+        {% block footer %}{% endblock %}
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

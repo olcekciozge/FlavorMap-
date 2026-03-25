@@ -1,11 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
 <h1>{{ category.name }}</h1>
 
 <ul>
 {% for r in restaurants %}
     <li>
-        <a href="{% url 'restaurants:detail' r.id %}">
-            {{ r.title }}
-        </a>
+        <a href="{% url 'restaurants:detail' r.id %}">{{ r.title }}</a>
     </li>
+{% empty %}
+    <li>No restaurants in this category</li>
 {% endfor %}
 </ul>
+{% endblock %}
