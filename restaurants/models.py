@@ -1,6 +1,14 @@
 from django.db import models
 from django.db.models import Avg
 
+class Menu(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return self.name
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -11,38 +19,13 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-class MenuItem(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
-
-    def __str__(self):
-        return self.name
-
-class MenuCategory(models.Model):
-    name = models.CharField(max_length=100)
-    menu_item = models.ForeignKey(
-        MenuItem,
-        on_delete=models.CASCADE,
-        related_name='menu_categories',
-    )
-    class Meta:
-        verbose_name_plural = "Menu Categories"
-
-    def __str__(self):
-        return self.name
-
-
 class Restaurant(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     city = models.CharField(max_length=100)
     district = models.CharField(max_length=100, blank=True)
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        related_name='restaurants',
-    )
+    categories = models.ForeignKey(Category,on_delete=models.CASCADE, related_name="restaurants")
+    menus = models.ManyToManyField(Menu,related_name="menus")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,18 +37,11 @@ class Restaurant(models.Model):
 
     price_range = models.IntegerField(choices=PRICE_CHOICES, blank=True)
 
-    menu_category = models.ForeignKey(
-        MenuItem,
-        on_delete=models.CASCADE,
-        related_name='menu_categories1',
-    )
-
     def average_rating(self):
-        return self.reviews.aggregate(Avg("rating"))["rating__avg"]
+        return self.reviews.aggregate(Avg("rate_range"))["rate_range__avg"]
 
     def __str__(self):
         return self.name
-
 
 class Review(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name="reviews")
@@ -78,7 +54,7 @@ class Review(models.Model):
         (5, '⭐⭐⭐⭐⭐')
     ]
 
-    rate_range = models.IntegerField(choices=RATE_CHOICES)
+    rating = models.IntegerField(choices=RATE_CHOICES)
 
     def __str__(self):
-        return f"{self.restaurant.name} - {self.rate_range}"
+        return f"{self.restaurant.name} - {self.rating}"

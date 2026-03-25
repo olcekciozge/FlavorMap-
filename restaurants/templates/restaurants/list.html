@@ -8,7 +8,7 @@
 <ul>
 {% for r in restaurants %}
     <li>
-        <a href="{% url 'restaurants:detail' r.id %}">{{ r.title }}</a> - {{ r.location }}
+        <a href="{% url 'restaurants:detail' r.id %}">{{ r.name }}</a> - {{ r.city }} {{ r.district }}
     </li>
 {% empty %}
     <li>No restaurants yet</li>

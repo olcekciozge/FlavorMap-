@@ -32,7 +32,7 @@ def add_review(request, id):
 
         if not text or not rating:
             reviews = restaurant.reviews.all()
-            avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"]
+            avg_rating = reviews.aggregate(Avg("rate_range"))["rate_range__avg"]
             return render(request, "restaurants/detail.html", {
                 "restaurant": restaurant,
                 "reviews": reviews,
@@ -49,15 +49,15 @@ def add_review(request, id):
 
     return redirect("restaurants:detail", id=id)
 
-def detail(request, id):
+def detail(request,id):
     restaurant = get_object_or_404(Restaurant, pk=id)
     reviews = restaurant.reviews.all()
-    avg_rating = restaurant.reviews.aggregate(Avg("rating"))["rating__avg"]
+    avg_rating = restaurant.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
 
     return render(request, "restaurants/detail.html", {
         "restaurant": restaurant,
         "reviews": reviews,
-        "avg_rating": avg_rating["rating__avg"]
+        "avg_rating": avg_rating
     })
 
 def about(request):

@@ -3,9 +3,10 @@
 {% block title %}{{ restaurant.title }}{% endblock %}
 
 {% block content %}
-<h1>{{ restaurant.title }}</h1>
+<h1>{{ restaurant.name }}</h1>
+<p>{{ restaurant.address }}</p>
 <p>{{ restaurant.description }}</p>
-<p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
+    <p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
 
 <h2>Write a Review</h2>
 <form action="{% url 'restaurants:add_review' restaurant.id %}" method="post">
