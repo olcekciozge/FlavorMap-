@@ -24,8 +24,8 @@ class Restaurant(models.Model):
     description = models.TextField(blank=True)
     city = models.CharField(max_length=100)
     district = models.CharField(max_length=100, blank=True)
-    categories = models.ForeignKey(Category,on_delete=models.CASCADE, related_name="restaurants")
-    menus = models.ManyToManyField(Menu,related_name="menus")
+    categories = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="restaurants")
+    menus = models.ManyToManyField(Menu, related_name="restaurant_menus")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,11 +34,12 @@ class Restaurant(models.Model):
         (2, '€€'),
         (3, '€€€'),
     ]
+    price_range = models.IntegerField(choices=PRICE_CHOICES, blank=True, default=1)
 
-    price_range = models.IntegerField(choices=PRICE_CHOICES, blank=True)
-
+    # ÖNEMLİ: Hata buradaydı, 'rate_range' yerine 'rating' olmalı
     def average_rating(self):
-        return self.reviews.aggregate(Avg("rate_range"))["rate_range__avg"]
+        avg = self.reviews.aggregate(Avg("rating"))["rating__avg"]
+        return round(avg, 1) if avg else 0
 
     def __str__(self):
         return self.name
@@ -50,10 +51,9 @@ class Review(models.Model):
         (1, '⭐'),
         (2, '⭐⭐'),
         (3, '⭐⭐⭐'),
-        (4,'⭐⭐⭐⭐' ),
+        (4, '⭐⭐⭐⭐'),
         (5, '⭐⭐⭐⭐⭐')
     ]
-
     rating = models.IntegerField(choices=RATE_CHOICES)
 
     def __str__(self):

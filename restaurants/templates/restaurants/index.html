@@ -5,14 +5,18 @@
 {% block content %}
 <h1>Restaurants</h1>
 
-<ul>
-{% for r in restaurants %}
-    <li>
-        <p>{{ r }}</p>
-        <a href="{% url 'restaurants:detail' r.id %}">{{ r.name }}</a> - {{ r.city }} {{ r.district }}
-    </li>
-{% empty %}
-    <li>No restaurants yet</li>
-{% endfor %}
-</ul>
+{# Listedeki {% if %} kuralını karşılamak için ekledik #}
+{% if restaurants %}
+    <ul>
+    {% for r in restaurants %}
+        <li>
+            {# Sadece senin istediğin alanlar ve zorunlu {% url %} etiketi #}
+            <strong><a href="{% url 'restaurants:detail' r.id %}">{{ r.name }}</a></strong>
+            - {{ r.city }} {{ r.district }}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No restaurants yet.</p>
+{% endif %}
 {% endblock %}
