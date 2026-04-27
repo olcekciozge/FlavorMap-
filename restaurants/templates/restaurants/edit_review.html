@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Edit Review</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="text" value="{{ review.text }}">
+    <input type="number" name="rating" value="{{ review.rating }}" min="1" max="5">
+    <button type="submit">Update</button>
+</form>
+
+{% endblock %}

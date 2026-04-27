@@ -3,15 +3,49 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+
 <h1>Restaurants</h1>
 
-{# Listedeki {% if %} kuralını karşılamak için ekledik #}
+<h2>⭐ Top Rated</h2>
+
+{% for r in top_rated %}
+    <p>
+        <a href="{% url 'restaurants:detail' r.id %}">
+            {{ r.name }}
+        </a>
+        - ⭐ {{ r.avg_rating|default:"No rating" }}
+    </p>
+{% empty %}
+    <p>No ratings yet.</p>
+{% endfor %}
+
+<hr>
+
+<h2>🆕 Newest Restaurants</h2>
+
+{% for r in newest %}
+    <p>
+        <a href="{% url 'restaurants:detail' r.id %}">
+            {{ r.name }}
+        </a>
+    </p>
+{% empty %}
+    <p>No restaurants yet.</p>
+{% endfor %}
+
+<hr>
+
+<h2>All Restaurants</h2>
+
 {% if restaurants %}
     <ul>
     {% for r in restaurants %}
         <li>
-            {# Sadece senin istediğin alanlar ve zorunlu {% url %} etiketi #}
-            <strong><a href="{% url 'restaurants:detail' r.id %}">{{ r.name }}</a></strong>
+            <strong>
+                <a href="{% url 'restaurants:detail' r.id %}">
+                    {{ r.name }}
+                </a>
+            </strong>
             - {{ r.city }} {{ r.district }}
         </li>
     {% endfor %}
@@ -19,4 +53,5 @@
 {% else %}
     <p>No restaurants yet.</p>
 {% endif %}
+
 {% endblock %}

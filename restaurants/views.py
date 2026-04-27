@@ -1,11 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Restaurant, Category, Review
+from .models import Restaurant, Category, Review, Favorite
 from django.db.models import Avg
-
-
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+User = get_user_model()
 def index(request):
     restaurants = Restaurant.objects.all()
-    context = {"restaurants": restaurants}
+
+    top_rated = Restaurant.objects.annotate(
+        avg_rating=Avg('reviews__rating')
+    ).order_by('-avg_rating')[:5]
+
+    newest = Restaurant.objects.order_by('-id')[:5]
+
+    context = {
+        "restaurants": restaurants,
+        "top_rated": top_rated,
+        "newest": newest
+    }
+
     return render(request, "restaurants/index.html", context)
 
 def restaurant_list(request):
@@ -23,12 +37,13 @@ def category_restaurants(request, category_id):
     }
     return render(request, "restaurants/category.html", context)
 
+@login_required
 def add_review(request, id):
     restaurant = get_object_or_404(Restaurant, pk=id)
 
     if request.method == "POST":
         text = request.POST.get("text", "").strip()
-        rating = request.POST.get("rating", "").strip()
+        rating = int(request.POST.get("rating"))
 
         if not text or not rating:
             reviews = restaurant.reviews.all()
@@ -40,8 +55,12 @@ def add_review(request, id):
                 "error_message": "You can't leave it blank!",
             })
 
+        if Review.objects.filter(restaurant=restaurant, user=request.user).exists():
+            return redirect("restaurants:detail", id=id)
+
         Review.objects.create(
             restaurant=restaurant,
+            user=request.user,
             text=text,
             rating=rating
         )
@@ -65,3 +84,69 @@ def about(request):
 
 def contact(request):
     return render(request, "restaurants/contact.html", {"title": "Contact Us"})
+
+def register(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Bu kullanıcı adı zaten alınmış.")
+            return redirect('register')
+
+        User.objects.create_user(username=username, password=password)
+        return redirect('login')
+
+    return render(request, 'register.html')
+
+def create(request):
+    return render(request, "create.html")
+
+@login_required
+def edit_review(request, id):
+    review = get_object_or_404(Review, pk=id)
+
+    if review.user != request.user:
+        return redirect("restaurants:detail", id=review.restaurant.id)
+
+    if request.method == "POST":
+        review.text = request.POST.get("text")
+        review.rating = request.POST.get("rating")
+        review.save()
+        return redirect("restaurants:detail", id=review.restaurant.id)
+
+    return render(request, "restaurants/edit_review.html", {"review": review})
+
+@login_required
+def delete_review(request, id):
+    review = get_object_or_404(Review, pk=id)
+
+    if review.user != request.user:
+        return redirect("restaurants:detail", id=review.restaurant.id)
+
+    if request.method == "POST":
+        review.delete()
+        return redirect("restaurants:detail", id=review.restaurant.id)
+
+    return render(request, "restaurants/delete_review.html", {"review": review})
+
+def toggle_favorite(request, id):
+    restaurant = get_object_or_404(Restaurant, pk=id)
+
+    fav = Favorite.objects.filter(user=request.user, restaurant=restaurant)
+
+    if fav.exists():
+        fav.delete()
+    else:
+        Favorite.objects.create(user=request.user, restaurant=restaurant)
+
+    return redirect("restaurants:detail", id=id)
+
+def profile(request):
+    favorites = Favorite.objects.filter(user=request.user)
+    reviews = Review.objects.filter(user=request.user)
+
+    return render(request, "restaurants/profile.html", {
+        "favorites": favorites,
+        "reviews": reviews
+    })

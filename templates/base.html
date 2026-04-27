@@ -68,18 +68,30 @@
 
     <div class="container">
 
-        <nav class="sidebar">
-        <h3></h3>
-            <a href="{% url 'restaurants:index' %}">Home</a>
-        <h3></h3>
-            <a href="{% url 'restaurants:list' %}">All Restaurants</a>
-        <h3></h3>
-            <a href="{% url 'restaurants:about' %}">About</a>
-        <h3></h3>
-            <a href="{% url 'restaurants:contact' %}">Contact</a>
+    <nav class="sidebar">
 
-            {% block sidebar %}{% endblock %}
-        </nav>
+        <a href="{% url 'restaurants:index' %}">Home</a>
+        <a href="{% url 'restaurants:list' %}">All Restaurants</a>
+        <a href="{% url 'restaurants:about' %}">About</a>
+        <a href="{% url 'restaurants:contact' %}">Contact</a>
+
+        <hr>
+
+        {% if user.is_authenticated %}
+            <p>👤 {{ user.username }}</p>
+            <a href="{% url 'restaurants:create' %}">+ Add Restaurant</a>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'restaurants:register' %}">Register</a>
+        {% endif %}
+
+        {% block sidebar %}{% endblock %}
+
+    </nav>
 
         <main class="content">
             {% block content %}

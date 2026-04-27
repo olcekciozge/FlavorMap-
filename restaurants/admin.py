@@ -10,7 +10,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class RestaurantAdmin(admin.ModelAdmin):
     list_display = ('name', 'categories', 'city', 'price_range')
     search_fields = ('name', 'description', 'city')
-    list_filter = ('categories', 'city') # 'category' yerine 'categories'
+    list_filter = ('categories', 'city')
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):

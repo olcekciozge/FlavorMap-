@@ -9,6 +9,8 @@
     <p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
 
 <h2>Write a Review</h2>
+{% if user.is_authenticated %}
+
 <form action="{% url 'restaurants:add_review' restaurant.id %}" method="post">
     {% csrf_token %}
     {% if error_message %}
@@ -20,13 +22,39 @@
     <input type="submit" value="Submit">
 </form>
 
+<form action="{% url 'restaurants:favorite' restaurant.id %}" method="POST">
+    {% csrf_token %}
+
+    {% if restaurant.favorite_set.all|length > 0 %}
+        <button type="submit">💔 Remove Favorite</button>
+    {% else %}
+        <button type="submit">❤️ Add Favorite</button>
+    {% endif %}
+</form>
+
+{% else %}
+    <p>You must <a href="{% url 'login' %}">login</a> to write a review.</p>
+{% endif %}
+
 <hr>
 <h2>Reviews</h2>
-<ul>
-{% for review in reviews %}
-    <li>{{ review.text }} - {{ review.rating }}</li>
+
+{% for r in reviews %}
+
+<div style="margin-bottom: 15px;">
+    <p><strong>{{ r.user.username }}</strong> - ⭐ {{ r.rating }}</p>
+    <p>{{ r.text }}</p>
+
+    {% if user == r.user %}
+        <a href="{% url 'restaurants:edit_review' r.id %}">Edit</a>
+        |
+        <a href="{% url 'restaurants:delete_review' r.id %}">Delete</a>
+    {% endif %}
+</div>
+
+<hr>
+
 {% empty %}
-    <li>No reviews yet</li>
+    <p>No reviews yet</p>
 {% endfor %}
-</ul>
 {% endblock %}

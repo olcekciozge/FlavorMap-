@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ user.username }} Profile</h1>
+
+<h2>Favorites</h2>
+<ul>
+{% for f in favorites %}
+    <li>{{ f.restaurant.name }}</li>
+{% empty %}
+    <li>No favorites yet</li>
+{% endfor %}
+</ul>
+
+<h2>My Reviews</h2>
+<ul>
+{% for r in reviews %}
+    <li>{{ r.restaurant.name }} - ⭐ {{ r.rating }}</li>
+{% empty %}
+    <li>No reviews yet</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

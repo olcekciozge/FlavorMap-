@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Avg
+from django.contrib.auth.models import User
 
 class Menu(models.Model):
     name = models.CharField(max_length=255)
@@ -36,7 +37,6 @@ class Restaurant(models.Model):
     ]
     price_range = models.IntegerField(choices=PRICE_CHOICES, blank=True, default=1)
 
-    # ÖNEMLİ: Hata buradaydı, 'rate_range' yerine 'rating' olmalı
     def average_rating(self):
         avg = self.reviews.aggregate(Avg("rating"))["rating__avg"]
         return round(avg, 1) if avg else 0
@@ -46,6 +46,7 @@ class Restaurant(models.Model):
 
 class Review(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     RATE_CHOICES = [
         (1, '⭐'),
@@ -56,5 +57,15 @@ class Review(models.Model):
     ]
     rating = models.IntegerField(choices=RATE_CHOICES)
 
+    class Meta:
+        unique_together = ('restaurant', 'user')
+
     def __str__(self):
-        return f"{self.restaurant.name} - {self.rating}"
+        return f"{self.user.username} - {self.restaurant.name}  ({self.rating})"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'restaurant')
