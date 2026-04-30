@@ -1,19 +1,216 @@
 {% extends "homepage.html" %}
-
+{% load static %}
 {% block title %}All Restaurants{% endblock %}
 
 {% block content %}
-    <main>
-<h1>All Restaurants</h1>
+<main>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurants</title>
 
-<ul>
-{% for r in restaurants %}
-    <li>
-        <a href="{% url 'restaurants:detail' r.id %}">{{ r.name }}</a> - {{ r.city }} {{ r.district }}
-    </li>
-{% empty %}
-    <li>No restaurants yet</li>
-{% endfor %}
-</ul>
-    </main>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: rgba(193, 190, 190, 0.69);
+            margin: 0;
+        }
+
+        .top-bar input,
+        .top-bar select {
+            padding: 10px;
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 8px;
+        }
+
+        .top-bar button {
+            padding: 10px 15px;
+            border: none;
+            background: rgb(126, 9, 9);
+            color: rgb(255, 255, 255);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* CONTAINER */
+    .container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* SABİT 3 KART */
+        gap: 20px;
+        padding: 20px;
+        justify-items: center;
+    }
+
+    /* CARD */
+    .card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 450px;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 15px;
+            flex-grow: 1; /* İçeriğin kartı doldurmasını sağlar */
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 8px;
+        }
+
+        .desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px;
+            flex-grow: 1; /* Açıklama kısa olsa bile butonu aşağı iter */
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .rating {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .price {
+            background: #f1f1f1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: #7e0909;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #7e0909;
+        }
+
+        /* EMPTY STATE */
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+
+<form method="GET" class="top-bar">
+
+    <select name="category">
+        <option value="">Category</option>
+        {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="price">
+        <option value="">Price</option>
+        <option value="1">€</option>
+        <option value="2">€€</option>
+        <option value="3">€€€</option>
+    </select>
+
+    <input type="text" name="city" placeholder="City">
+
+    <button type="submit">Filter</button>
+</form>
+
+<!-- CARDS -->
+<div class="container">
+
+    {% for r in restaurants %}
+    <div class="card">
+
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image" alt="">
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="name">{{ r.name }}</div>
+
+            <div class="meta">
+                {{ r.city }} {% if r.district %}- {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {{ r.categories.name }}
+            </div>
+
+            <div class="desc">
+                {{ r.description|default:"No description available" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn">
+                View Details
+            </a>
+
+        </div>
+    </div>
+    {% empty %}
+        <div class="empty">
+            No restaurants found.
+        </div>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
+</main>
 {% endblock %}

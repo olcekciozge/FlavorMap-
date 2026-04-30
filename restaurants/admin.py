@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Restaurant, Category, Menu, Review
+from .models import Restaurant, Category, Menu, Review, OpeningHours
+
+admin.site.register(OpeningHours)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -22,3 +24,4 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('restaurant', 'rating', 'text')
     search_fields = ('text',)
     list_filter = ('rating', 'restaurant')
+

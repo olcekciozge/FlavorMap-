@@ -1,0 +1,30 @@
+{% extends "homepage.html" %}
+{% block content %}
+<main>
+<html>
+<head>
+    <title>Add Restaurant</title>
+</head>
+<body>
+
+<h1>Add Restaurant</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Name:</label><br>
+    <input type="text" name="name"><br><br>
+
+    <label>Description:</label><br>
+    <textarea name="description"></textarea><br><br>
+
+    <label>Location:</label><br>
+    <input type="text" name="location"><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+</body>
+</html>
+</main>
+{% endblock %}

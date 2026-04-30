@@ -7,6 +7,16 @@
 <h1>{{ restaurant.name }}</h1>
 <p>{{ restaurant.address }}</p>
 <p>{{ restaurant.description }}</p>
+    <h3>Opening Hours</h3>
+
+    {% for h in restaurant.hours.all %}
+        <p>{{ h.get_day_display }}: {{ h.open_time }} - {{ h.close_time }}</p>
+    {% empty %}
+         <p>No hours available</p>
+    {% endfor %}
+    {% if restaurant.image %}
+        <img src="{{ restaurant.image.url }}" width="300">
+    {% endif %}
     <p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
 
 <h2>Write a Review</h2>
@@ -23,19 +33,20 @@
     <input type="submit" value="Submit">
 </form>
 
+{% if user.is_authenticated %}
 <form action="{% url 'restaurants:favorite' restaurant.id %}" method="POST">
     {% csrf_token %}
 
-    {% if restaurant.favorite_set.all|length > 0 %}
+    {% if is_favorite %}
         <button type="submit">💔 Remove Favorite</button>
     {% else %}
         <button type="submit">❤️ Add Favorite</button>
     {% endif %}
-</form>
 
-{% else %}
-    <p>You must <a href="{% url 'login' %}">login</a> to write a review.</p>
+</form>
 {% endif %}
+</form>
+    <p>You must <a href="{% url 'login' %}">login</a> to write a review.</p>
 
 <hr>
 <h2>Reviews</h2>
@@ -51,6 +62,23 @@
         |
         <a href="{% url 'restaurants:delete_review' r.id %}">Delete</a>
     {% endif %}
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'restaurants:add_reply' r.id %}">
+        {% csrf_token %}
+        <input type="text" name="text" placeholder="Reply...">
+        <button type="submit">Reply</button>
+    </form>
+    {% endif %}
+
+    {% for reply in r.replies.all %}
+        <div style="margin-left:30px;">
+            <p><strong>{{ reply.user.username }}</strong></p>
+            <p>{{ reply.text }}</p>
+        </div>
+    {% empty %}
+        <p style="margin-left:20px;">No replies yet</p>
+    {% endfor %}
 </div>
 
 <hr>
@@ -59,4 +87,5 @@
     <p>No reviews yet</p>
 {% endfor %}
     </main>
+{% endif %}
 {% endblock %}

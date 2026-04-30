@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Restaurant, Category, Review, Favorite
 from django.db.models import Avg
 from django.contrib import messages
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -24,7 +25,31 @@ def index(request):
 
 def restaurant_list(request):
     restaurants = Restaurant.objects.all()
-    context = {"restaurants": restaurants}
+
+    query = request.GET.get("q")
+    category = request.GET.get("category")
+    city = request.GET.get("city")
+    price = request.GET.get("price")
+
+    if query:
+        restaurants = restaurants.filter(name__icontains=query)
+
+    if category:
+        restaurants = restaurants.filter(categories__id=category)
+
+    if city:
+        restaurants = restaurants.filter(city__icontains=city)
+
+    if price:
+        restaurants = restaurants.filter(price_range=price)
+
+    categories = Category.objects.all()
+
+    context = {
+        "restaurants": restaurants,
+        "categories": categories
+    }
+
     return render(request, "restaurants/list.html", context)
 
 def category_restaurants(request, category_id):
@@ -43,11 +68,16 @@ def add_review(request, id):
 
     if request.method == "POST":
         text = request.POST.get("text", "").strip()
-        rating = int(request.POST.get("rating"))
+        rating = request.POST.get("rating")
+
+        if not rating:
+            rating = None
+        else:
+            rating = int(rating)
 
         if not text or not rating:
             reviews = restaurant.reviews.all()
-            avg_rating = reviews.aggregate(Avg("rate_range"))["rate_range__avg"]
+            avg_rating = reviews.aggregate(Avg("rate_range"))["rating__avg"]
             return render(request, "restaurants/detail.html", {
                 "restaurant": restaurant,
                 "reviews": reviews,
@@ -58,11 +88,12 @@ def add_review(request, id):
         if Review.objects.filter(restaurant=restaurant, user=request.user).exists():
             return redirect("restaurants:detail", id=id)
 
-        Review.objects.create(
-            restaurant=restaurant,
-            user=request.user,
-            text=text,
-            rating=rating
+        with transaction.atomic():
+            Review.objects.create(
+                 restaurant=restaurant,
+                 user=request.user,
+                 text=text,
+                  rating=rating
         )
         return redirect("restaurants:detail", id=id)
 
@@ -70,13 +101,21 @@ def add_review(request, id):
 
 def detail(request,id):
     restaurant = get_object_or_404(Restaurant, pk=id)
-    reviews = restaurant.reviews.all()
+    is_favorite = False
+
+    if request.user.is_authenticated:
+        is_favorite = Favorite.objects.filter(
+            user=request.user,
+            restaurant=restaurant
+        ).exists()
+    reviews = restaurant.reviews.filter(parent__isnull=True)
     avg_rating = restaurant.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
 
     return render(request, "restaurants/detail.html", {
         "restaurant": restaurant,
         "reviews": reviews,
-        "avg_rating": avg_rating
+        "avg_rating": avg_rating,
+        "is_favorite": is_favorite
     })
 
 def about(request):
@@ -102,7 +141,20 @@ def register(request):
     return render(request, 'register.html')
 
 def create(request):
-    return render(request, "create.html")
+    if request.method == "POST":
+        name = request.POST.get("name")
+        description = request.POST.get("description")
+        location = request.POST.get("location")
+
+        if name:
+            Restaurant.objects.create(
+                name=name,
+                description=description,
+                location=location
+            )
+            return redirect("restaurants:index")
+
+    return render(request, "restaurants/create.html")
 
 @login_required
 def edit_review(request, id):
@@ -132,6 +184,7 @@ def delete_review(request, id):
 
     return render(request, "restaurants/delete_review.html", {"review": review})
 
+@login_required
 def toggle_favorite(request, id):
     restaurant = get_object_or_404(Restaurant, pk=id)
 
@@ -152,3 +205,21 @@ def profile(request):
         "favorites": favorites,
         "reviews": reviews
     })
+
+@login_required
+def add_reply(request, review_id):
+    parent_review = get_object_or_404(Review, id=review_id)
+
+    if request.method == "POST":
+        text = request.POST.get("text")
+
+        if text:
+            Review.objects.create(
+                restaurant=parent_review.restaurant,
+                user=request.user,
+                text=text,
+                rating=parent_review.rating,
+                parent=parent_review
+            )
+
+    return redirect("restaurants:detail", id=parent_review.restaurant.id)
