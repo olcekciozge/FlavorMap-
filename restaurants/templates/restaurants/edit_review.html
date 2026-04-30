@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
+{% extends 'homepage.html' %}
 
 {% block content %}
-
+<main>
 <h2>Edit Review</h2>
 
 <form method="POST">
@@ -10,5 +10,5 @@
     <input type="number" name="rating" value="{{ review.rating }}" min="1" max="5">
     <button type="submit">Update</button>
 </form>
-
+</main>
 {% endblock %}

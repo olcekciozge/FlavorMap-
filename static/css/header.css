@@ -1,0 +1,113 @@
+/* header */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background: linear-gradient(to bottom, rgb(97, 7, 7) 0%, rgb(126, 9, 9) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box;
+    height: 70px;
+}
+
+/* flavormap */
+.logo {
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+
+/* NAV LIST */
+.navbar ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+/* urls */
+.navbar a {
+    color: rgba(255, 255, 255, 0.84);
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 10px;
+    letter-spacing: 1px;
+    transition: 0.4s;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    color: white;
+    text-shadow: 0 0 10px rgb(255, 255, 255);
+}
+
+/* login and register buton */
+.login-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(129, 19, 19, 0.84);
+    border-radius: 4px;
+    background: rgba(129, 19, 19, 0.84);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.login-btn:hover {
+    background: rgba(129, 19, 19, 0.84);
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+    text-shadow: none;
+}
+
+/* search box */
+.search-btn {
+    padding: 8px 6px;
+    border: 1px solid rgba(129, 19, 19, 0.84);
+    border-radius: 4px;
+    background: rgba(129, 19, 19, 0.84);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.search-btn:hover {
+    background: rgba(129, 19, 19, 0.84);
+    border-color: rgb(255, 255, 255);
+    transform: translateY(-1px);
+}
+
+/* closed version */
+.search-btn input {
+    width: 0;
+    opacity: 0;
+
+    border: none;
+    outline: none;
+    background: transparent;
+
+    color: white;
+    font-size: 0.85rem;
+
+    transition: 0.3s ease;
+}
+
+/* opened version */
+.search-btn.active input {
+    width: 120px;
+    opacity: 1;
+}

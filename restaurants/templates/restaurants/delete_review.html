@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
+{% extends 'homepage.html' %}
 
 {% block content %}
-
+<main>
 <h2>Delete Review?</h2>
 
 <p>{{ review.text }}</p>
@@ -10,5 +10,5 @@
     {% csrf_token %}
     <button type="submit">Yes Delete</button>
 </form>
-
+</main>
 {% endblock %}

@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "homepage.html" %}
 
 {% block title %}{{ category.name }}{% endblock %}
 
 {% block content %}
+    <main>
 <h1>{{ category.name }}</h1>
 
 <ul>
@@ -14,4 +15,5 @@
     <li>No restaurants in this category</li>
 {% endfor %}
 </ul>
+    </main>
 {% endblock %}

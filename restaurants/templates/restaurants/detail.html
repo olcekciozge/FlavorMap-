@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "homepage.html" %}
 
 {% block title %}{{ restaurant.title }}{% endblock %}
 
 {% block content %}
+    <main>
 <h1>{{ restaurant.name }}</h1>
 <p>{{ restaurant.address }}</p>
 <p>{{ restaurant.description }}</p>
@@ -57,4 +58,5 @@
 {% empty %}
     <p>No reviews yet</p>
 {% endfor %}
+    </main>
 {% endblock %}

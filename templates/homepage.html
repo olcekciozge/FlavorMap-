@@ -1,0 +1,51 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlavorMap</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+</head>
+
+<body>
+<header class="navbar">
+    <div class="logo">FLAVORMAP</div>
+    <nav>
+        <ul>
+            <li><a href="{% url 'restaurants:index' %}">Homepage</a>
+                <a href="{% url 'restaurants:list' %}">All Restaurants</a>
+
+            <li>
+                <div class="search-btn" id="search-btn">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search..." />
+                </div>
+            </li>
+
+            {% if user.is_authenticated %}
+            <p>{{ user.username }}</p>
+            <a href="{% url 'restaurants:create' %}">Add Restaurant</a>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+            </form>
+            {% else %}
+            <li><a href="{% url 'restaurants:login' %}" class="login-btn">Login</a></li>
+            <li><a href="{% url 'restaurants:register' %}" class="login-btn">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+
+{% block content %}
+{% endblock %}
+
+<script src="{% static 'js/search.js' %}"></script>
+
+<div class="footer-section">
+    <a href="{% url 'restaurants:contact' %}" class="credits-link"> Created by <span>Megabite</span> </a>
+</div>
+</body>
+</html>

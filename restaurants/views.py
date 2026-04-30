@@ -89,6 +89,7 @@ def register(request):
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
+        confirm = request.POST.get("confirm")
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Bu kullanıcı adı zaten alınmış.")
@@ -96,6 +97,7 @@ def register(request):
 
         User.objects.create_user(username=username, password=password)
         return redirect('login')
+
 
     return render(request, 'register.html')
 
