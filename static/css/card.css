@@ -1,0 +1,126 @@
+body {
+        font-family: 'Montserrat', sans-serif;
+        background: rgba(193, 190, 190, 0.69);
+        margin: 0;
+    }
+
+    .top-bar input,
+    .top-bar select {
+        padding: 10px;
+        border: 1px solid rgb(255, 255, 255);
+        border-radius: 8px;
+    }
+
+    .top-bar button {
+        padding: 10px 15px;
+        border: none;
+        background: rgb(126, 9, 9);
+        color: rgb(255, 255, 255);
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+
+    .container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
+        padding: 20px;
+        justify-items: center;
+    }
+
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 450px;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 8px;
+        }
+
+        .desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .rating {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .price {
+            background: #f1f1f1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: #7e0909;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #7e0909;
+        }
+
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+
+        .title {
+            text-align: center;
+            color: #7e0909;
+        }

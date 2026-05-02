@@ -1,0 +1,111 @@
+{% extends "main.html" %}
+{% load static %}
+{% block title %}All Restaurants{% endblock %}
+
+{% block content %}
+<main>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
+
+<body>
+<form method="GET" class="top-bar">
+
+    <select name="category">
+        <option value="">Category</option>
+        {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="price">
+        <option value="">Price</option>
+        <option value="1">€</option>
+        <option value="2">€€</option>
+        <option value="3">€€€</option>
+    </select>
+
+    <select name="min_rating">
+        <option value="">Min Rating</option>
+        <option value="1">★1 & up</option>
+        <option value="2">★2 & up</option>
+        <option value="3">★3 & up</option>
+        <option value="4">★4 & up</option>
+        <option value="5">★5 only</option>
+    </select>
+
+    <select name="sort">
+        <option value="">Sort By</option>
+        <option value="name_asc">Name (A-Z)</option>
+        <option value="name_desc">Name (Z-A)</option>
+        <option value="rating_desc">Rating (High → Low)</option>
+        <option value="rating_asc">Rating (Low → High)</option>
+    </select>
+
+    <select name="city">
+        <option value="">City</option>
+        {% for z in cities %}
+            <option value="{{ z.id }}">{{ z.name }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Filter</button>
+</form>
+
+<div class="container">
+
+    {% for r in restaurants %}
+    <div class="card">
+
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image" alt="">
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="name">{{ r.name }}</div>
+
+            <div class="meta">
+                {{ r.city }} {% if r.district %}- {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {{ r.categories.name }}
+            </div>
+
+            <div class="desc">
+                {{ r.description|default:"" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn">
+                View Details
+            </a>
+
+        </div>
+    </div>
+    {% empty %}
+        <div class="empty">
+            No restaurants found.
+        </div>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
+</main>
+{% endblock %}

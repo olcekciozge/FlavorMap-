@@ -20,10 +20,20 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class City(models.Model):
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name_plural = "Cities"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 class Restaurant(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    city = models.CharField(max_length=100)
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
     district = models.CharField(max_length=100, blank=True)
     categories = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="restaurants")
     menus = models.ManyToManyField(Menu, related_name="restaurant_menus")

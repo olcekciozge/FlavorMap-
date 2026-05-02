@@ -1,54 +1,111 @@
+{% extends "main.html" %}
 {% load static %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlavorMap</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/header.css' %}">
-    <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
-</head>
-
-<body>
-<header class="navbar">
-    <div class="logo">FLAVORMAP</div>
-    <nav>
-        <ul>
-            <li><a href="{% url 'restaurants:index' %}">Homepage</a>
-                <a href="{% url 'restaurants:list' %}">All Restaurants</a>
-
-            {% if user.is_authenticated %}
-            <a href="{% url 'restaurants:create' %}">Add Restaurant</a>
-            {% endif %}
-
-            <li>
-                <div class="search-btn" id="search-btn">
-                <i class="fas fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search..." />
-                </div>
-            </li>
-
-            {% if user.is_authenticated %}
-            <li><a href="{% url 'restaurants:profile' %}" class="login-btn">{{ user.username }}'s Profile</a></li>
-            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="login-btn">Logout</button>
-            </form>
-            {% else %}
-            <li><a href="{% url 'restaurants:login' %}" class="login-btn">Login</a></li>
-            <li><a href="{% url 'restaurants:register' %}" class="login-btn">Register</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-</header>
+{% block title %}Home{% endblock %}
 
 {% block content %}
-{% endblock %}
+<main>
+<link rel="stylesheet" href="{% static 'css/card.css' %}">
 
-<script src="{% static 'js/search.js' %}"></script>
+<h1 class="title">Top Rated Restaurants</h1>
 
-<div class="footer-section">
-    <a href="{% url 'restaurants:contact' %}" class="credits-link"> Created by <span>Megabite</span> </a>
+<div class="container">
+{% for r in top_rated %}
+    <div class="card">
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image">
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="name">{{ r.name }}</div>
+
+            <div class="meta">
+                {{ r.city }} {% if r.district %}- {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {{ r.categories.name }}
+            </div>
+
+            <div class="desc">
+                {{ r.description|default:"" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn">
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+{% empty %}
+    <p>No ratings yet.</p>
+{% endfor %}
 </div>
-</body>
-</html>
+
+<hr>
+
+<h1 class="title">Newest Restaurants</h1>
+
+<div class="container">
+{% for r in newest %}
+    <div class="card">
+
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image">
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="name">{{ r.name }}</div>
+
+            <div class="meta">
+                {{ r.city }} {% if r.district %}- {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {{ r.categories.name }}
+            </div>
+
+            <div class="desc">
+                {{ r.description|default:"" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn">
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+{% empty %}
+    <p>No restaurants yet.</p>
+{% endfor %}
+</div>
+
+</main>
+{% endblock %}

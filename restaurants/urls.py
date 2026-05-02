@@ -12,7 +12,6 @@ urlpatterns = [
     path('review/edit/<int:id>/', views.edit_review, name='edit_review'),
     path('review/delete/<int:id>/', views.delete_review, name='delete_review'),
     path("category/<int:category_id>/", views.category_restaurants, name="category"),
-    path("about/", views.about, name="about"),
     path("contact/", views.contact, name="contact"),
     path('register/', views.register, name='register'),
     path('create/', views.create, name='create'),

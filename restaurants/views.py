@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Restaurant, Category, Review, Favorite
+from .models import Restaurant, Category, Review, Favorite, City
 from django.db.models import Avg
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 User = get_user_model()
+
 def index(request):
     restaurants = Restaurant.objects.all()
 
@@ -21,36 +22,45 @@ def index(request):
         "newest": newest
     }
 
-    return render(request, "restaurants/index.html", context)
+    return render(request, "homepage.html", context)
 
 def restaurant_list(request):
-    restaurants = Restaurant.objects.all()
+    restaurants = Restaurant.objects.annotate(
+        average_rating=Avg("reviews__rating")
+    )
 
-    query = request.GET.get("q")
     category = request.GET.get("category")
-    city = request.GET.get("city")
     price = request.GET.get("price")
-
-    if query:
-        restaurants = restaurants.filter(name__icontains=query)
+    city = request.GET.get("city")
+    min_rating = request.GET.get("min_rating")
+    sort = request.GET.get("sort")
 
     if category:
-        restaurants = restaurants.filter(categories__id=category)
-
-    if city:
-        restaurants = restaurants.filter(city__icontains=city)
+        restaurants = restaurants.filter(categories_id=category)
 
     if price:
         restaurants = restaurants.filter(price_range=price)
 
-    categories = Category.objects.all()
+    if city:
+        restaurants = restaurants.filter(city_id=city)
 
-    context = {
+    if min_rating:
+        restaurants = restaurants.filter(average_rating__gte=min_rating)
+
+    if sort == "name_asc":
+        restaurants = restaurants.order_by("name")
+    elif sort == "name_desc":
+        restaurants = restaurants.order_by("-name")
+    elif sort == "rating_desc":
+        restaurants = restaurants.order_by("-average_rating")
+    elif sort == "rating_asc":
+        restaurants = restaurants.order_by("average_rating")
+
+    return render(request, "allrestaurants.html", {
         "restaurants": restaurants,
-        "categories": categories
-    }
-
-    return render(request, "restaurants/list.html", context)
+        "categories": Category.objects.all(),
+        "cities": City.objects.all(),
+    })
 
 def category_restaurants(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
@@ -78,7 +88,7 @@ def add_review(request, id):
         if not text or not rating:
             reviews = restaurant.reviews.all()
             avg_rating = reviews.aggregate(Avg("rate_range"))["rating__avg"]
-            return render(request, "restaurants/detail.html", {
+            return render(request, "restaurants/restaurantprofile.html", {
                 "restaurant": restaurant,
                 "reviews": reviews,
                 "avg_rating": avg_rating,
@@ -111,18 +121,16 @@ def detail(request,id):
     reviews = restaurant.reviews.filter(parent__isnull=True)
     avg_rating = restaurant.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
 
-    return render(request, "restaurants/detail.html", {
+    return render(request, "restaurants/restaurantprofile.html", {
         "restaurant": restaurant,
         "reviews": reviews,
         "avg_rating": avg_rating,
         "is_favorite": is_favorite
     })
 
-def about(request):
-    return render(request, "restaurants/about.html", {"title": "About FlavorMap"})
 
 def contact(request):
-    return render(request, "restaurants/contact.html", {"title": "Contact Us"})
+    return render(request, "contact.html", {"title": "Contact Us"})
 
 def register(request):
     if request.method == "POST":
@@ -154,7 +162,7 @@ def create(request):
             )
             return redirect("restaurants:index")
 
-    return render(request, "restaurants/create.html")
+    return render(request, "restaurants/addrestaurant.html")
 
 @login_required
 def edit_review(request, id):
@@ -201,7 +209,7 @@ def profile(request):
     favorites = Favorite.objects.filter(user=request.user)
     reviews = Review.objects.filter(user=request.user)
 
-    return render(request, "restaurants/profile.html", {
+    return render(request, "restaurants/userprofile.html", {
         "favorites": favorites,
         "reviews": reviews
     })
