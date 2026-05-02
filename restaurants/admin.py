@@ -15,9 +15,11 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ('name', 'categories', 'city', 'price_range')
-    search_fields = ('name', 'description', 'city')
+    list_display = ('name', 'owner', 'categories', 'city', 'price_range')
+    search_fields = ('name', 'description')
     list_filter = ('categories', 'city')
+    fields = ('name', 'description', 'city', 'categories', 'price_range', 'owner')
+
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):

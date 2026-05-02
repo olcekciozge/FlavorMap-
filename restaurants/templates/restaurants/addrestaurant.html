@@ -1,11 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
 <main>
-<html>
-<head>
-    <title>Add Restaurant</title>
-</head>
-<body>
 
 <h1>Add Restaurant</h1>
 
@@ -18,13 +13,52 @@
     <label>Description:</label><br>
     <textarea name="description"></textarea><br><br>
 
-    <label>Location:</label><br>
-    <input type="text" name="location"><br><br>
+
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+
+    <div id="map" style="height:300px;"></div><br>
 
     <button type="submit">Submit</button>
 </form>
 
-</body>
-</html>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY
+"></script>
+
+<script>
+let map;
+let marker;
+
+function initMap() {
+    const defaultLocation = { lat: 41.0082, lng: 28.9784 };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: defaultLocation,
+    });
+
+    map.addListener("click", function (event) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
+
+        document.getElementById("latitude").value = lat;
+        document.getElementById("longitude").value = lng;
+
+        if (marker) {
+            marker.setMap(null);
+        }
+
+        marker = new google.maps.Marker({
+            position: { lat: lat, lng: lng },
+            map: map,
+        });
+    });
+}
+
+window.onload = initMap;
+</script>
+
 </main>
 {% endblock %}

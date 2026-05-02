@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.contrib.auth.models import User
 
 class Menu(models.Model):
@@ -31,15 +31,20 @@ class City(models.Model):
         return self.name
 
 class Restaurant(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     city = models.ForeignKey(City, on_delete=models.CASCADE)
     district = models.CharField(max_length=100, blank=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     categories = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="restaurants")
     menus = models.ManyToManyField(Menu, related_name="restaurant_menus")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     image = models.ImageField(upload_to='restaurants/', blank=True, null=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     PRICE_CHOICES = [
         (1, '€'),
@@ -49,9 +54,8 @@ class Restaurant(models.Model):
     price_range = models.IntegerField(choices=PRICE_CHOICES, blank=True, default=1)
 
     def average_rating(self):
-        avg = self.reviews.aggregate(Avg("rating"))["rating__avg"]
+        avg = self.reviews.filter(parent__isnull=True).aggregate(Avg("rating"))["rating__avg"]
         return round(avg, 1) if avg else 0
-
     def __str__(self):
         return self.name
 
@@ -90,7 +94,7 @@ class Review(models.Model):
         (4, '⭐⭐⭐⭐'),
         (5, '⭐⭐⭐⭐⭐')
     ]
-    rating = models.IntegerField(choices=RATE_CHOICES)
+    rating = models.IntegerField(choices=RATE_CHOICES, null=True, blank=True)
 
     parent = models.ForeignKey(
         'self',
@@ -101,7 +105,13 @@ class Review(models.Model):
     )
 
     class Meta:
-        unique_together = ('restaurant', 'user')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['restaurant', 'user'],
+                condition=Q(parent__isnull=True),
+                name='unique_main_review'
+            )
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.restaurant.name}  ({self.rating})"
@@ -112,3 +122,12 @@ class Favorite(models.Model):
 
     class Meta:
         unique_together = ('user', 'restaurant')
+
+
+class ReviewLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="likes")
+
+    class Meta:
+        unique_together = ('user', 'review')
+

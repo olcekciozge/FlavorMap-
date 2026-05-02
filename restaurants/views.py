@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Restaurant, Category, Review, Favorite, City
-from django.db.models import Avg
+from .models import Restaurant, Category, Review, Favorite, City, ReviewLike
+from django.db.models import Avg, Q
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -11,7 +11,7 @@ def index(request):
     restaurants = Restaurant.objects.all()
 
     top_rated = Restaurant.objects.annotate(
-        avg_rating=Avg('reviews__rating')
+        avg_rating=Avg('reviews__rating', filter=Q(reviews__parent__isnull=True))
     ).order_by('-avg_rating')[:5]
 
     newest = Restaurant.objects.order_by('-id')[:5]
@@ -26,7 +26,7 @@ def index(request):
 
 def restaurant_list(request):
     restaurants = Restaurant.objects.annotate(
-        average_rating=Avg("reviews__rating")
+        average_rating=Avg("reviews__rating", filter=Q(reviews__parent__isnull=True))
     )
 
     category = request.GET.get("category")
@@ -87,7 +87,7 @@ def add_review(request, id):
 
         if not text or not rating:
             reviews = restaurant.reviews.all()
-            avg_rating = reviews.aggregate(Avg("rate_range"))["rating__avg"]
+            avg_rating = restaurant.reviews.filter(parent__isnull=True).aggregate(avg=Avg("rating"))["avg"]
             return render(request, "restaurants/restaurantprofile.html", {
                 "restaurant": restaurant,
                 "reviews": reviews,
@@ -98,13 +98,25 @@ def add_review(request, id):
         if Review.objects.filter(restaurant=restaurant, user=request.user).exists():
             return redirect("restaurants:detail", id=id)
 
-        with transaction.atomic():
-            Review.objects.create(
-                 restaurant=restaurant,
-                 user=request.user,
-                 text=text,
-                  rating=rating
-        )
+        try:
+            with transaction.atomic():
+                Review.objects.create(
+                    restaurant=restaurant,
+                    user=request.user,
+                    text=text,
+                    rating=rating
+                )
+        except IntegrityError:
+            reviews = restaurant.reviews.all()
+            avg_rating = restaurant.reviews.filter(parent__isnull=True).aggregate(avg=Avg("rating"))["avg"] or 0
+
+            return render(request, "restaurants/restaurantprofile.html", {
+                "restaurant": restaurant,
+                "reviews": reviews,
+                "avg_rating": avg_rating,
+                "error_message": "You already reviewed this restaurant!"
+            })
+
         return redirect("restaurants:detail", id=id)
 
     return redirect("restaurants:detail", id=id)
@@ -148,21 +160,24 @@ def register(request):
 
     return render(request, 'register.html')
 
+
 def create(request):
     if request.method == "POST":
         name = request.POST.get("name")
         description = request.POST.get("description")
-        location = request.POST.get("location")
 
         if name:
             Restaurant.objects.create(
                 name=name,
                 description=description,
-                location=location
+                city=City.objects.first(),
+                categories=Category.objects.first(),
+                owner=request.user
             )
             return redirect("restaurants:index")
 
     return render(request, "restaurants/addrestaurant.html")
+
 
 @login_required
 def edit_review(request, id):
@@ -222,12 +237,29 @@ def add_reply(request, review_id):
         text = request.POST.get("text")
 
         if text:
-            Review.objects.create(
-                restaurant=parent_review.restaurant,
-                user=request.user,
-                text=text,
-                rating=parent_review.rating,
-                parent=parent_review
-            )
+            try:
+                Review.objects.create(
+                    restaurant=parent_review.restaurant,
+                    user=request.user,
+                    text=text,
+                    rating=None,
+                    parent=parent_review
+                )
+            except IntegrityError:
+                messages.error(request, "Something went wrong while replying.")
 
     return redirect("restaurants:detail", id=parent_review.restaurant.id)
+
+
+@login_required
+def toggle_like(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+
+    like = ReviewLike.objects.filter(user=request.user, review=review)
+
+    if like.exists():
+        like.delete()
+    else:
+        ReviewLike.objects.create(user=request.user, review=review)
+
+    return redirect("restaurants:detail", id=review.restaurant.id)
