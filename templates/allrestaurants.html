@@ -4,7 +4,6 @@
 
 {% block content %}
 <main>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{% static 'css/card.css' %}">
@@ -74,7 +73,9 @@
             </div>
 
             <div class="meta">
-                {{ r.categories.name }}
+            {% for cat in r.categories.all %}
+                <span>{{ cat.name }}</span>
+            {% endfor %}
             </div>
 
             <div class="desc">
@@ -106,6 +107,6 @@
 </div>
 
 </body>
-</html>
+
 </main>
 {% endblock %}

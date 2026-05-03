@@ -3,9 +3,13 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<main>
-<link rel="stylesheet" href="{% static 'css/card.css' %}">
+<head>
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
 
+<main>
+
+<body>
 <h1 class="title">Top Rated Restaurants</h1>
 
 <div class="container">
@@ -26,7 +30,9 @@
             </div>
 
             <div class="meta">
-                {{ r.categories.name }}
+                {% for cat in r.categories.all %}
+                <span>{{ cat.name }}</span>
+                {% endfor %}
             </div>
 
             <div class="desc">
@@ -78,7 +84,9 @@
             </div>
 
             <div class="meta">
-                {{ r.categories.name }}
+                {% for cat in r.categories.all %}
+                <span>{{ cat.name }}</span>
+                {% endfor %}
             </div>
 
             <div class="desc">
@@ -107,5 +115,6 @@
 {% endfor %}
 </div>
 
+</body>
 </main>
 {% endblock %}

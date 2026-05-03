@@ -1,25 +1,175 @@
-{% extends 'main.html' %}
+{% extends "main.html" %}
+{% load static %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
+
 <main>
 <h1>{{ user.username }}'s Profile</h1>
+<h2> My Favorites</h2>
 
-<h2>Favorites</h2>
-<ul>
+<div class="container">
+
 {% for f in favorites %}
-    <li>{{ f.restaurant.name }}</li>
+
+    {% with r=f.restaurant %}
+
+    <div class="card">
+
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image">
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="name">
+                {{ r.name }}
+            </div>
+
+            <div class="meta">
+                {{ r.city }}{% if r.district %} - {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {% for cat in r.categories.all %}
+                <span>{{ cat.name }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="desc">
+                {{ r.description|default:"" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.reviews.aggregate_avg|default:r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn">
+                View Details
+            </a>
+
+        </div>
+    </div>
+
+    {% endwith %}
+
 {% empty %}
-    <li>No favorites yet</li>
+    <p>No favorites yet.</p>
 {% endfor %}
-</ul>
+
+</div>
+
+<hr>
 
 <h2>My Reviews</h2>
-<ul>
-{% for r in reviews %}
-    <li>{{ r.restaurant.name }} - ⭐ {{ r.rating }}</li>
-{% empty %}
-    <li>No reviews yet</li>
-{% endfor %}
+
+<ul style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+">
+    {% for r in reviews %}
+        <li style="
+            flex: 0 0 calc(33.333% - 20px);
+            min-width: 250px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        ">
+            <strong style="font-size: 1.1em;">{{ r.restaurant.name }}</strong>
+            <span style="color: #f39c12; margin-left: 10px;">⭐ {{ r.rating }}</span>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+            <p style="margin: 0; color: #555; line-height: 1.5;">
+                {{ r.text }}
+            </p>
+        </li>
+    {% empty %}
+        <p>No reviews yet.</p>
+    {% endfor %}
 </ul>
+
+<hr>
+
+<h2>My Restaurants</h2>
+<div class="container">
+
+{% for r in owned_restaurants %}
+    <div class="card">
+        {% if r.image %}
+            <img src="{{ r.image.url }}" alt="{{ r.name }}">
+        {% else %}
+            <img src="https://via.placeholder.com/400x300?text=No+Image">
+        {% endif %}
+
+        <div class="card-body">
+            <div class="name">
+                {{ r.name }}
+            </div>
+
+            <div class="meta">
+                {{ r.city.name }}{% if r.district %} - {{ r.district }}{% endif %}
+            </div>
+
+            <div class="meta">
+                {% for cat in r.categories.all %}
+                <span>{{ cat.name }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="desc">
+                {{ r.description|truncatewords:15|default:"" }}
+            </div>
+
+            <div class="bottom">
+                <div class="rating">
+                    ⭐ {{ r.average_rating }}
+                </div>
+
+                <div class="price">
+                    {{ r.get_price_range_display }}
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+
+            <a href="{% url 'restaurants:detail' r.id %}" class="btn" style="text-align: center;">
+            View details
+            </a>
+
+
+            <div style="display: flex; gap: 8px;">
+            <a href="{% url 'restaurants:edit_restaurant' r.id %}" class="btn"
+            style="flex: 1; text-align: center; background-color: #ff9800;">
+            Edit
+            </a>
+            <a href="{% url 'restaurants:delete_restaurant' r.id %}" class="btn"
+            style="flex: 1; text-align: center; background-color: #000000;">
+            Delete
+            </a>
+            </div>
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <p>No restaurants yet.</p>
+{% endfor %}
+
+</div>
+
 </main>
 {% endblock %}

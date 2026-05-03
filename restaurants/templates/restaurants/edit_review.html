@@ -1,16 +1,36 @@
 {% extends 'main.html' %}
+{% load static %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<main>
-<h2>Edit Review</h2>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="text" name="text" value="{{ review.text }}">
-    {% if not review.parent %}
-        <input type="number" name="rating" value="{{ review.rating }}" min="1" max="5">
-    {% endif %}
-    <button type="submit">Update</button>
-</form>
-</main>
+<body>
+
+    <div class="login_register">
+
+        <div class="login_register-box">
+
+            <div class="name">Edit Review</div>
+
+            <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="text" value="{{ review.text }}">
+            {% if not review.parent %}
+            <input type="number" name="rating" value="{{ review.rating }}" min="1" max="5">
+            {% endif %}
+            <button type="submit" class="btn">Update</button>
+            </form>
+
+
+        </div>
+    </div>
+
+</body>
+
+
+
 {% endblock %}

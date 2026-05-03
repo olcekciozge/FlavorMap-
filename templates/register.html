@@ -1,16 +1,33 @@
 {% extends 'main.html' %}
+{% load static %}
+{% block title %}Register{% endblock %}
+
 {% block content %}
-    <main>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
 
-<h2>Register</h2>
+<body>
 
-<form method="POST">
-    {% csrf_token %}
-    <input type="text" name="username" placeholder="Username">
-    <input type="password" name="password" placeholder="Password">
-    <input type="password" name="confirm" placeholder="Confirm Password">
-    <button type="submit">Register</button>
-</form>
+    <div class="login_register">
 
-    </main>
+        <div class="login_register-box">
+
+            <div class="name">Register</div>
+
+            <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <input type="password" name="confirm" placeholder="Confirm Password">
+            <button type="submit" class="btn">Register</button>
+            </form>
+
+
+        </div>
+    </div>
+
+</div>
+</body>
 {% endblock %}

@@ -1,100 +1,127 @@
 {% extends "main.html" %}
-
+{% load static %}
 {% block title %}{{ restaurant.title }}{% endblock %}
 
 {% block content %}
-    <main>
-<h1>{{ restaurant.name }}</h1>
-<p>{{ restaurant.address }}</p>
-<p>{{ restaurant.description }}</p>
-<h3>Location</h3>
+<main>
 
-{% if restaurant.latitude and restaurant.longitude %}
-    <iframe
-        width="100%"
-        height="300"
-        style="border:0"
-        loading="lazy"
-        allowfullscreen
-        src="https://maps.google.com/maps?q={{ restaurant.latitude }},{{ restaurant.longitude }}&z=15&output=embed">
-    </iframe>
-{% else %}
-    <p>Location not available</p>
-{% endif %}
+<meta charset="UTF-8">
+<link rel="stylesheet" href="{% static 'css/restaurantprofile.css' %}">
 
+<div class="extra">
 
-    <h3>Opening Hours</h3>
+<div class="profile-card-left">
 
-    {% for h in restaurant.hours.all %}
-        <p>{{ h.get_day_display }}: {{ h.open_time }} - {{ h.close_time }}</p>
-    {% empty %}
-         <p>No hours available</p>
-    {% endfor %}
-    {% if restaurant.image %}
-        <img src="{{ restaurant.image.url }}" width="300">
-    {% endif %}
-    <p>Average rating: {{ avg_rating|default:"No ratings yet" }}</p>
+    <div class="title">
+        <h1>{{ restaurant.name }}</h1>
+    </div>
 
-<h2>Write a Review</h2>
-{% if user.is_authenticated %}
+    <div class="meta">
+        <p>{{ restaurant.city }} - {{ restaurant.district }} </p>
+        <div class="rating">
+            <p>⭐ {{ restaurant.average_rating }}</p>
+        </div>
+    </div>
 
-<form action="{% url 'restaurants:add_review' restaurant.id %}" method="post">
-    {% csrf_token %}
-    {% if error_message %}
-        <p><strong>{{ error_message }}</strong></p>
-    {% endif %}
-    <textarea name="text" placeholder="Write your review" required></textarea><br>
-    <label>Rating:</label>
-    <input type="number" name="rating" min="1" max="5" required><br>
-    <input type="submit" value="Submit">
-</form>
+    <div class="restaurant-img">
+        {% if restaurant.image %}
+            <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}" class="restaurant-img">
+        {% endif %}
+    </div>
 
-{% if user.is_authenticated %}
-<form action="{% url 'restaurants:favorite' restaurant.id %}" method="POST">
-    {% csrf_token %}
-
-    {% if is_favorite %}
-        <button type="submit">💔 Remove Favorite</button>
-    {% else %}
-        <button type="submit">❤️ Add Favorite</button>
-    {% endif %}
-
-</form>
-{% endif %}
-</form>
-    <p>You must <a href="{% url 'login' %}">login</a> to write a review.</p>
-
-<hr>
-<h2>Reviews</h2>
-
-{% for r in reviews %}
-
-<div style="margin-bottom: 15px;">
-    <p><strong>{{ r.user.username }}</strong> - ⭐ {{ r.rating }}</p>
-    <p>{{ r.text }}</p>
-
-    <form method="POST" action="{% url 'restaurants:like' r.id %}">
-    {% csrf_token %}
-        <button type="submit">
-            ❤️ {{ r.likes.count }}
-         </button>
-    </form>
-
-    {% if user == r.user %}
-        <a href="{% url 'restaurants:edit_review' r.id %}">Edit</a>
-        |
-        <a href="{% url 'restaurants:delete_review' r.id %}">Delete</a>
-    {% endif %}
+    <p>{{ restaurant.description }}</p>
 
     {% if user.is_authenticated %}
-    <form method="post" action="{% url 'restaurants:add_reply' r.id %}">
+    <form action="{% url 'restaurants:favorite' restaurant.id %}" method="POST">
         {% csrf_token %}
-        <input type="text" name="text" placeholder="Reply...">
-        <button type="submit">Reply</button>
+        {% if is_favorite %}
+            <button type="submit" class="btn">💔 Remove Favorite</button>
+        {% else %}
+            <button type="submit" class="btn">❤️ Add Favorite</button>
+        {% endif %}
     </form>
     {% endif %}
 
-    {% for reply in r.replies.all %}
+    <h4>Opening Hours</h4>
+    {% for h in restaurant.time.all %}
+        <p>{{ h.get_day_display }}: {{ h.open_time }} - {{ h.close_time }}</p>
+    {% empty %}
+        <p>No hours available.</p>
+    {% endfor %}
+
+    <hr>
+
+    <h4>Menu</h4>
+    <div class="menu-section">
+        {% for m in restaurant.menus.all %}
+                <div class="menu-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-radius: 8px;">
+                    <span style="font-weight: 500;">{{ m.name }}</span>
+                    <span style="color: #7e0909;">{{ m.price }} {{ m.get_currency_display }}</span>
+                </div>
+            {% empty %}
+                <p>No menu items selected.</p>
+            {% endfor %}
+    </div>
+</div>
+
+<div class="profile-card-right">
+
+    {% if not user.is_authenticated %}
+        <p>You must <a href="{% url 'login' %}">login</a> to rate and write a review.</p>
+    {% endif %}
+
+
+    {% if user.is_authenticated %}
+    <form action="{% url 'restaurants:add_review' restaurant.id %}" method="post">
+        {% csrf_token %}
+        <h3>Write a Review</h3>
+
+        <div class="top-bar">
+            <textarea name="text" placeholder="Write your review..." required></textarea><br>
+            <input type="number" name="rating" placeholder="Rate" min="1" max="5" required>
+            {% if error_message %}
+            <p><strong>{{ error_message }}</strong></p>
+            {% endif %}
+
+            <button type="submit" class="top-bar-button">Reply</button>
+        </div>
+
+
+    </form>
+    {% endif %}
+
+<hr>
+
+    <h2>Reviews</h2>
+    {% for r in reviews %}
+
+    <div class="top-bar">
+        <p><strong>{{ r.user.username }}</strong> - ⭐ {{ r.rating }}</p>
+        <p>{{ r.text }}</p>
+
+
+        <form method="POST" action="{% url 'restaurants:like' r.id %}">
+            {% csrf_token %}
+            <button type="submit">
+                ❤️ {{ r.likes.count }}
+            </button>
+        </form>
+
+        {% if user == r.user %}
+            <a href="{% url 'restaurants:edit_review' r.id %}">Edit</a> |
+            <a href="{% url 'restaurants:delete_review' r.id %}">Delete</a>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+
+        <form method="post" action="{% url 'restaurants:add_reply' r.id %}">
+            {% csrf_token %}
+            <input type="text" name="text" placeholder="Reply..." required>
+            <button type="submit" class="top-bar-button">Reply</button>
+        </form>
+        {% endif %}
+
+        {% for reply in r.replies.all %}
         <div style="margin-left:30px;">
             <p><strong>{{ reply.user.username }}</strong></p>
             <p>{{ reply.text }}</p>
@@ -107,21 +134,24 @@
             </form>
 
             {% if user == reply.user %}
-             <a href="{% url 'restaurants:edit_review' reply.id %}">Edit</a>
-            |
-             <a href="{% url 'restaurants:delete_review' reply.id %}">Delete</a>
+                <a href="{% url 'restaurants:edit_review' reply.id %}">Edit</a> |
+                <a href="{% url 'restaurants:delete_review' reply.id %}">Delete</a>
             {% endif %}
         </div>
+        {% empty %}
+            <p style="margin-left:20px;">No replies yet</p>
+        {% endfor %}
+    </div>
+
+
     {% empty %}
-        <p style="margin-left:20px;">No replies yet</p>
+        <p>No reviews yet</p>
     {% endfor %}
+
+</div>
 </div>
 
-<hr>
+</div>
 
-{% empty %}
-    <p>No reviews yet</p>
-{% endfor %}
-    </main>
-{% endif %}
+</main>
 {% endblock %}

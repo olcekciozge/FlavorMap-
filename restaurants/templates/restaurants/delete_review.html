@@ -1,14 +1,33 @@
 {% extends 'main.html' %}
+{% load static %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-<main>
-<h2>Delete Review?</h2>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'css/card.css' %}">
+</head>
 
-<p>{{ review.text }}</p>
+<body>
 
-<form method="POST">
-    {% csrf_token %}
-    <button type="submit">Yes Delete</button>
-</form>
-</main>
+    <div class="login_register">
+
+        <div class="login_register-box">
+
+            <div class="name">Delete Review?</div>
+
+            <p>{{ review.text }}</p>
+
+            <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn">Yes Delete</button>
+            </form>
+
+
+        </div>
+    </div>
+
+
+</body>
+
 {% endblock %}
