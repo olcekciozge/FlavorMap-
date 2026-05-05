@@ -5,6 +5,36 @@
 {% block content %}
 <main>
 
+<script>
+function openLightbox(img) {
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+
+    lightbox.style.display = "flex";
+    lightboxImg.src = img.src;
+}
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    const lightbox = document.getElementById("lightbox");
+    const closeBtn = document.querySelector(".close");
+
+
+    closeBtn.addEventListener("click", function() {
+        lightbox.style.display = "none";
+    });
+
+
+    lightbox.addEventListener("click", function(e) {
+        if (e.target === lightbox) {
+            lightbox.style.display = "none";
+        }
+    });
+
+});
+</script>
+
 <meta charset="UTF-8">
 <link rel="stylesheet" href="{% static 'css/restaurantprofile.css' %}">
 
@@ -25,8 +55,26 @@
 
     <div class="restaurant-img">
         {% if restaurant.image %}
-            <img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}" class="restaurant-img">
+            <img src="{{ restaurant.image.url }}"
+     alt="{{ restaurant.name }}"
+     class="restaurant-img"
+     onclick="openLightbox(this)">
+
         {% endif %}
+    </div>
+
+    <div class="gallery">
+        {% for img in restaurant.images.all %}
+            <img src="{{ img.image.url }}" class="gallery-img" onclick="openLightbox(this)">
+        {% empty %}
+            <p>No extra images.</p>
+        {% endfor %}
+    </div>
+
+
+    <div id="lightbox" class="lightbox">
+        <span class="close">&times;</span>
+        <img class="lightbox-img" id="lightbox-img">
     </div>
 
     <p>{{ restaurant.description }}</p>
@@ -49,6 +97,21 @@
         <p>No hours available.</p>
     {% endfor %}
 
+
+    <h4>Location</h4>
+
+    {% if restaurant.latitude and restaurant.longitude %}
+    <iframe
+            width="100%"
+            height="250"
+            style="border:0"
+            loading="lazy"
+            allowfullscreen
+            src="https://www.google.com/maps?q={{ restaurant.latitude }},{{ restaurant.longitude }}&output=embed">
+    </iframe>
+    {% else %}
+    <p>Location not available.</p>
+    {% endif %}
     <hr>
 
     <h4>Menu</h4>
@@ -97,14 +160,18 @@
 
     <div class="top-bar">
         <p><strong>{{ r.user.username }}</strong> - ⭐ {{ r.rating }}</p>
+
+        <small style="color:gray;">
+            {{ r.created_at|date:"d M Y H:i" }}
+        </small>
+
         <p>{{ r.text }}</p>
 
 
-        <form method="POST" action="{% url 'restaurants:like' r.id %}">
+        <form method="POST" action="{% url 'restaurants:like' r.id %}" style="display: flex; gap: 10px;">
             {% csrf_token %}
-            <button type="submit">
-                ❤️ {{ r.likes.count }}
-            </button>
+            <button name="value" value="1">👍🏻 {{ r.like_count }}</button>
+            <button name="value" value="-1">👎🏻 {{ r.dislike_count }}</button>
         </form>
 
         {% if user == r.user %}
@@ -121,16 +188,18 @@
         </form>
         {% endif %}
 
-        {% for reply in r.replies.all %}
+        {% for reply in r.annotated_replies %}
         <div style="margin-left:30px;">
             <p><strong>{{ reply.user.username }}</strong></p>
+            <small style="color:gray;">
+                {{ reply.created_at|date:"d M Y H:i" }}
+            </small>
             <p>{{ reply.text }}</p>
 
             <form method="POST" action="{% url 'restaurants:like' reply.id %}">
                 {% csrf_token %}
-                <button type="submit">
-                    ❤️ {{ reply.likes.count }}
-                </button>
+                <button name="value" value="1">👍🏻 {{ reply.like_count }}</button>
+                <button name="value" value="-1">👎🏻 {{ reply.dislike_count }}</button>
             </form>
 
             {% if user == reply.user %}

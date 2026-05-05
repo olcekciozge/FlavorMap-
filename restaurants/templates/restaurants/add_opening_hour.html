@@ -1,0 +1,40 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Add Opening Hours{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/card.css' %}">
+
+<div class="login_register">
+
+    <div class="login_register-box">
+
+        <div class="name">Add Opening Hours</div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <select name="day" required>
+                <option value="">Select Day</option>
+                <option value="Mon">Monday</option>
+                <option value="Tue">Tuesday</option>
+                <option value="Wed">Wednesday</option>
+                <option value="Thu">Thursday</option>
+                <option value="Fri">Friday</option>
+                <option value="Sat">Saturday</option>
+                <option value="Sun">Sunday</option>
+            </select>
+
+            <input type="time" name="open_time" required>
+
+            <input type="time" name="close_time" required>
+
+            <button type="submit" class="btn">Add</button>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

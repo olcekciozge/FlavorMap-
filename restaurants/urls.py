@@ -21,4 +21,6 @@ urlpatterns = [
     path('like/<int:review_id>/', views.toggle_like, name='like'),
     path('restaurants/edit/<int:id>/', views.edit_restaurant, name='edit_restaurant'),
     path('restaurants/delete/<int:id>/', views.delete_restaurant, name='delete_restaurant'),
+    path("add-menu/", views.add_menu, name="add_menu"),
+    path("add-opening-hour/", views.add_opening_hour, name="add_opening_hour"),
 ]

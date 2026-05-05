@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 class Menu(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
 
     CURRENCY_CHOICES = [
@@ -13,6 +14,8 @@ class Menu(models.Model):
     ]
 
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='TRY')
+
+    category = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return self.name
@@ -132,8 +135,26 @@ class Favorite(models.Model):
 
 
 class ReviewLike(models.Model):
+    LIKE_CHOICES = (
+        (1, "Like"),
+        (-1, "Dislike"),
+    )
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="likes")
+    value = models.IntegerField()
 
     class Meta:
         unique_together = ('user', 'review')
+
+
+class RestaurantImage(models.Model):
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+    image = models.ImageField(upload_to="restaurant_gallery/")
+
+    def __str__(self):
+        return f"{self.restaurant.name} Image"

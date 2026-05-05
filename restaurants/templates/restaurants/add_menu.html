@@ -1,0 +1,39 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Add Menu{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/card.css' %}">
+
+<div class="login_register">
+
+    <div class="login_register-box">
+
+        <div class="name">Add Menu</div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <input type="text" name="name" placeholder="Menu name" required>
+
+            <input type="text" name="description" placeholder="Description">
+
+            <input type="text" name="category" placeholder="Category (e.g. Drink, Main)">
+
+            <input type="number" step="0.01" name="price" placeholder="Price" required>
+
+            <select name="currency">
+                <option value="TRY">TL</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select>
+
+            <button type="submit" class="btn">Add</button>
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

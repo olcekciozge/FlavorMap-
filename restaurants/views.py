@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Restaurant, Category, Review, Favorite, City, ReviewLike, Menu, OpeningHours
-from django.db.models import Avg, Q
+from .models import Restaurant, Category, Review, Favorite, City, ReviewLike, Menu, OpeningHours, RestaurantImage
+from django.db.models import Avg, Q, Count, Sum
 from django.contrib import messages
 from django.db import transaction, IntegrityError
 from django.contrib.auth.decorators import login_required
@@ -25,6 +25,7 @@ def index(request):
     return render(request, "homepage.html", context)
 
 def restaurant_list(request):
+
     restaurants = Restaurant.objects.annotate(
         average_rating=Avg("reviews__rating", filter=Q(reviews__parent__isnull=True))
     )
@@ -34,6 +35,7 @@ def restaurant_list(request):
     city = request.GET.get("city")
     min_rating = request.GET.get("min_rating")
     sort = request.GET.get("sort")
+    query = request.GET.get("q")
 
     if category:
         restaurants = restaurants.filter(categories_id=category)
@@ -46,6 +48,17 @@ def restaurant_list(request):
 
     if min_rating:
         restaurants = restaurants.filter(average_rating__gte=min_rating)
+
+    if query:
+        restaurants = restaurants.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(city__name__icontains=query) |
+            Q(district__icontains=query) |
+            Q(categories__name__icontains=query) |
+            Q(menus__name__icontains=query)
+        ).distinct()
+
 
     if sort == "name_asc":
         restaurants = restaurants.order_by("name")
@@ -85,7 +98,11 @@ def add_review(request, id):
                 "error_message": "You can't leave it blank!",
             })
 
-        if Review.objects.filter(restaurant=restaurant, user=request.user).exists():
+        if Review.objects.filter(
+                restaurant=restaurant,
+                user=request.user,
+                parent__isnull=True
+        ).exists():
             return redirect("restaurants:detail", id=id)
 
         try:
@@ -120,8 +137,21 @@ def detail(request,id):
             user=request.user,
             restaurant=restaurant
         ).exists()
-    reviews = restaurant.reviews.filter(parent__isnull=True)
-    avg_rating = restaurant.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
+
+    reviews = restaurant.reviews.filter(parent__isnull=True).annotate(
+        like_count=Count("likes", filter=Q(likes__value=1)),
+        dislike_count=Count("likes", filter=Q(likes__value=-1)),
+        score=Sum("likes__value")
+    ).order_by("-score")
+
+    for r in reviews:
+        r.annotated_replies = r.replies.annotate(
+            like_count=Count("likes", filter=Q(likes__value=1)),
+            dislike_count=Count("likes", filter=Q(likes__value=-1)),
+            score=Sum("likes__value")
+        ).order_by("-score")
+
+    avg_rating = restaurant.average_rating()
 
     return render(request, "restaurants/restaurantprofile.html", {
         "restaurant": restaurant,
@@ -160,6 +190,14 @@ def create(request):
         district = request.POST.get("district")
         price_range = request.POST.get("price_range")
         image = request.FILES.get("image")
+        images = request.FILES.getlist("images")
+
+        try:
+            latitude = float(request.POST.get("latitude")) if request.POST.get("latitude") else None
+            longitude = float(request.POST.get("longitude")) if request.POST.get("longitude") else None
+        except ValueError:
+            latitude = None
+            longitude = None
 
         category_ids = request.POST.getlist("categories")
         menu_ids = request.POST.getlist("menus")
@@ -169,24 +207,39 @@ def create(request):
             messages.error(request, "Name and City are required.")
             return redirect("restaurants:create")
 
-        restaurant = Restaurant.objects.create(
-            name=name,
-            description=description,
-            city_id=city_id,
-            district=district,
-            price_range=price_range,
-            image=image,
-            owner=request.user
-        )
+        try:
+            with transaction.atomic():
 
-        if category_ids:
-            restaurant.categories.set(category_ids)
+                restaurant = Restaurant.objects.create(
+                    name=name,
+                    description=description,
+                    city_id=city_id,
+                    district=district,
+                    price_range=price_range,
+                    image=image,
+                    owner=request.user,
+                    latitude = latitude,
+                    longitude = longitude,
+                )
 
-        if menu_ids:
-            restaurant.menus.set(menu_ids)
+                for img in images:
+                    RestaurantImage.objects.create(
+                        restaurant=restaurant,
+                        image=img
+                    )
 
-        if opening_hour_ids:
-            restaurant.time.set(opening_hour_ids)
+                if category_ids:
+                    restaurant.categories.set(category_ids)
+
+                if menu_ids:
+                    restaurant.menus.set(menu_ids)
+
+                if opening_hour_ids:
+                    restaurant.time.set(opening_hour_ids)
+
+        except Exception:
+            messages.error(request, "Something went wrong while creating restaurant.")
+            return redirect("restaurants:create")
 
         messages.success(request, "Restaurant is successfully added!")
         return redirect("restaurants:index")
@@ -281,16 +334,22 @@ def add_reply(request, review_id):
 def toggle_like(request, review_id):
     review = get_object_or_404(Review, id=review_id)
 
-    like = ReviewLike.objects.filter(user=request.user, review=review)
+    value = int(request.POST.get("value"))
 
-    if like.exists():
-        like.delete()
-    else:
-        ReviewLike.objects.create(user=request.user, review=review)
+    obj, created = ReviewLike.objects.get_or_create(
+        user=request.user,
+        review=review,
+        defaults={"value": value}
+    )
+
+    if not created:
+        if obj.value == value:
+            obj.delete()
+        else:
+            obj.value = value
+            obj.save()
 
     return redirect("restaurants:detail", id=review.restaurant.id)
-
-
 @login_required
 def edit_restaurant(request, id):
     restaurant = get_object_or_404(Restaurant, pk=id)
@@ -314,20 +373,27 @@ def edit_restaurant(request, id):
             messages.error(request, "Name and city is required.")
             return redirect("restaurants:edit_restaurant", id=id)
 
-        restaurant.name = name
-        restaurant.description = description
-        restaurant.city_id = city_id
-        restaurant.district = district
-        restaurant.price_range = price_range
+        try:
+            with transaction.atomic():
 
-        if request.FILES.get("image"):
-            restaurant.image = request.FILES.get("image")
+                restaurant.name = name
+                restaurant.description = description
+                restaurant.city_id = city_id
+                restaurant.district = district
+                restaurant.price_range = price_range
 
-        restaurant.save()
+                if request.FILES.get("image"):
+                    restaurant.image = request.FILES.get("image")
 
-        restaurant.categories.set(category_ids)
-        restaurant.menus.set(menu_ids)
-        restaurant.time.set(opening_hour_ids)
+                restaurant.save()
+
+                restaurant.categories.set(category_ids)
+                restaurant.menus.set(menu_ids)
+                restaurant.time.set(opening_hour_ids)
+
+        except Exception:
+            messages.error(request, "Something went wrong while editing.")
+            return redirect("restaurants:edit_restaurant", id=id)
 
         messages.success(request, f"{restaurant.name} is successfully edited.")
         return redirect("restaurants:profile")
@@ -354,3 +420,47 @@ def delete_restaurant(request, id):
         return redirect("restaurants:profile")
 
     return render(request, "restaurants/delete_restaurant.html", {"restaurant": restaurant})
+
+
+@login_required
+def add_menu(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        price = request.POST.get("price")
+        currency = request.POST.get("currency")
+        description = request.POST.get("description")
+        category = request.POST.get("category")
+
+        if not name or not price:
+            messages.error(request, "All fields are required.")
+            return redirect("restaurants:add_menu")
+
+        Menu.objects.create(
+            name=name,
+            description=description,
+            price=price,
+            currency=currency,
+            category=category
+        )
+
+        messages.success(request, "Menu added!")
+        return redirect("restaurants:create")
+
+    return render(request, "restaurants/add_menu.html")
+
+@login_required
+def add_opening_hour(request):
+    if request.method == "POST":
+        day = request.POST.get("day")
+        open_time = request.POST.get("open_time")
+        close_time = request.POST.get("close_time")
+
+        OpeningHours.objects.create(
+            day=day,
+            open_time=open_time,
+            close_time=close_time
+        )
+
+        return redirect("restaurants:create")
+
+    return render(request, "restaurants/add_opening_hour.html")

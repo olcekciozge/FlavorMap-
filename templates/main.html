@@ -21,10 +21,10 @@
             {% endif %}
 
             <li>
-                <div class="search-btn" id="search-btn">
-                <i class="fas fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search..." />
-                </div>
+                <form method="GET" action="{% url 'restaurants:list' %}" class="search-btn" id="search-btn">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="q" id="search-input" placeholder="Search..." />
+                </form>
             </li>
 
             {% if user.is_authenticated %}

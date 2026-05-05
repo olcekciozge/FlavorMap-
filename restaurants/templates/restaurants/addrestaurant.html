@@ -41,6 +41,8 @@
                     <input type="text" name="district" style="
                         width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box;
                     ">
+                    <input type="text" name="latitude" placeholder="Latitude">
+                    <input type="text" name="longitude" placeholder="Longitude">
                 </div>
             </div>
 
@@ -73,6 +75,7 @@
 
             <div style="margin-bottom: 20px;">
             <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">Menu Items</label>
+                <a href="{% url 'restaurants:add_menu' %}">+ Add New Menu</a>
             <select name="menus" multiple style="
             width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; min-height: 100px;
             ">
@@ -85,6 +88,9 @@
 
             <div style="margin-bottom: 20px;">
             <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">Opening Hours</label>
+                <a href="{% url 'restaurants:add_opening_hour' %}">
+                     + Add Opening Hours
+                </a>
             <select name="time" multiple style="
             width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; min-height: 100px;
             ">
@@ -98,6 +104,14 @@
             <div style="margin-bottom: 30px;">
                 <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">Restaurant Photo</label>
                 <input type="file" name="image" accept="image/*" style="width: 100%;">
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                    Extra Photos
+                </label>
+                <input type="file" name="images" multiple accept="image/*" style="width: 100%;">
+                <small style="color: #666;">You can upload multiple images.</small>
             </div>
 
             <button type="submit" style="

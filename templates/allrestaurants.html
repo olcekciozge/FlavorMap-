@@ -12,6 +12,8 @@
 <body>
 <form method="GET" class="top-bar">
 
+    <input type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}">
+
     <select name="category">
         <option value="">Category</option>
         {% for c in categories %}
