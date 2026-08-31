@@ -109,7 +109,7 @@ FlavorMap/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/olcekciozge/FlavorMap-
+git clone https://github.com/olcekciozge/FlavorMap
 ```
 
 ### 2. Create virtual environment
